@@ -1,4 +1,6 @@
 import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
 import numpy as np
 import pandas as pd
 from flask import Flask, request, render_template, jsonify
@@ -9,17 +11,17 @@ import base64
 from werkzeug.utils import secure_filename
 import google.generativeai as genai
 from dotenv import load_dotenv
-# Import our new model utility
-import model_utils
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
-
 warnings.filterwarnings('ignore')
 
-# Configure logging so errors are visible in the console
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# Import our new model utility
+import model_utils
 
 # Gemini API setup ──────────────────────────────────────────────────────────
 # Key MUST be provided in .env file
@@ -27,10 +29,8 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 if not GEMINI_API_KEY:
     logger.error("GEMINI_API_KEY not found in environment variables. Please check your .env file.")
-    # You might want to raise an error or handle this gracefully
-    # raise ValueError("Missing GEMINI_API_KEY")
 
-GEMINI_MODELS = ["gemini-1.5-flash", "gemini-1.5-pro"]
+GEMINI_MODELS = ["gemini-3-flash-preview", "gemini-1.5-flash", "gemini-1.5-pro"]
 genai.configure(api_key=GEMINI_API_KEY)
 
 def _get_gemini_model():

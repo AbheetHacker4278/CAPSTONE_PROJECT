@@ -10,3 +10,4 @@ Pillow
 protobuf<4
 google-generativeai
 python-dotenv
+gunicorn
