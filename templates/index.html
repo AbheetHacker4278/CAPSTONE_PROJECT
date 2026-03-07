@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Breast Cancer Detection AI</title>
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4895ef;
+            --success-color: #4cc9f0;
+            --danger-color: #f72585;
+            --light-bg: #f8f9fa;
+            --card-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            background-color: #f0f2f5;
+            font-family: 'Inter', sans-serif;
+            color: #2b2d42;
+            line-height: 1.6;
+        }
+
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            color: var(--primary-color) !important;
+            font-size: 1.5rem;
+        }
+
+        .main-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 15px;
+        }
+
+        .card {
+            border: none;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            background: white;
+            margin-bottom: 2rem;
+            transition: var(--transition);
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            background: white;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            padding: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: var(--transition);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.4);
+        }
+
+        .form-control {
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            padding: 12px;
+            transition: var(--transition);
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+        }
+
+        .toggle-btn-group {
+            background: #e9ecef;
+            padding: 5px;
+            border-radius: 12px;
+            display: inline-flex;
+            margin-bottom: 2rem;
+        }
+
+        .toggle-btn {
+            border: none;
+            background: transparent;
+            padding: 10px 20px;
+            border-radius: 8px;
+            color: #6c757d;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .toggle-btn.active {
+            background: white;
+            color: var(--primary-color);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .prediction-result {
+            text-align: center;
+            padding: 3rem 2rem;
+            border-radius: 16px;
+            color: white;
+            margin-bottom: 2rem;
+        }
+
+        .prediction-result.malignant {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
+            background: linear-gradient(135deg, #ff5f6d 0%, #ffc371 100%);
+            /* Or use the danger var */
+            background: linear-gradient(135deg, #ef476f 0%, #ff1053 100%);
+        }
+
+        .prediction-result.benign {
+            background: linear-gradient(135deg, #4cc9f0 0%, #4361ee 100%);
+        }
+
+        .confidence-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-top: 10px;
+            display: inline-block;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+
+        .insight-card {
+            background: #f8f9fa;
+            border-left: 4px solid var(--primary-color);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-up {
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-light sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fa-solid fa-dna me-2"></i> Breast Cancer Detection
+            </a>
+            <span class="navbar-text">
+                Breast Cancer Detection System v1.0
+            </span>
+        </div>
+    </nav>
+
+    <div class="main-container">
+
+
+        <!-- Combined Layout -->
+        <div class="row justify-content-center">
+
+            <!-- Input / Form Section -->
+            <div class="{{ 'col-lg-4' if show_results else 'col-lg-8' }} mb-4 transition-width">
+
+                {% if error %}
+                <div class="alert alert-danger shadow-sm border-0 mb-4" role="alert">
+                    <i class="fas fa-exclamation-circle me-2"></i> {{ error }}
+                </div>
+                {% endif %}
+
+                <div class="card h-100" id="inputSection">
+                    <div class="card-body p-4 p-md-5">
+                        <div class="text-center mb-4">
+                            <h2 class="fw-bold mb-3">Patient Data Analysis</h2>
+                            <p class="text-muted">Select the dataset type and input the clinical measurements.</p>
+
+                            <div class="toggle-btn-group">
+                                <button type="button" class="toggle-btn active" onclick="switchForm('original')">
+                                    <i class="fas fa-file-medical me-2"></i> Standard
+                                </button>
+                                <button type="button" class="toggle-btn" onclick="switchForm('comprehensive')">
+                                    <i class="fas fa-microscope me-2"></i> Comp.
+                                </button>
+                                <button type="button" class="toggle-btn" onclick="switchForm('image')">
+                                    <i class="fas fa-images me-2"></i> Image
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Image Upload Form -->
+                        <div id="imageForm" class="hidden">
+                            <div class="text-center p-4 border rounded-3 bg-light">
+                                <i class="fas fa-cloud-upload-alt fa-3x text-secondary mb-3"></i>
+                                <h5>Upload Mammogram / Histology Image</h5>
+                                <p class="text-muted small">Supports JPG, PNG formats</p>
+
+                                <input type="file" id="imageInput" class="form-control mb-3" accept="image/*"
+                                    style="max-width: 100%; margin: 0 auto;">
+
+                                <div id="imagePreview" class="mb-3 hidden">
+                                    <img src="" alt="Preview" class="img-fluid rounded shadow-sm"
+                                        style="max-height: 200px;">
+                                </div>
+
+                                <button type="button" class="btn btn-primary px-4 w-100" onclick="predictImage()">
+                                    <i class="fas fa-search me-2"></i> Analyze Image
+                                </button>
+                            </div>
+                            <!-- Image Results Container -->
+                            <div id="imageResult" class="mt-4 hidden animate-up">
+                                <div class="prediction-result shadow" id="imgResultCard">
+                                    <h2 class="fw-bold" id="imgPrediction"></h2>
+                                    <p class="lead mb-0" id="imgDensity"></p>
+                                    <div class="confidence-badge" id="imgConfidence"></div>
+                                </div>
+                            </div>
+                            <!-- Image Error Container -->
+                            <div id="imageError" class="mt-4 hidden animate-up">
+                                <div class="alert alert-warning border-0 shadow-sm d-flex align-items-start gap-2"
+                                    role="alert">
+                                    <i class="fas fa-exclamation-triangle mt-1 text-warning"></i>
+                                    <div>
+                                        <strong>Image Not Accepted</strong><br>
+                                        <span id="imageErrorMsg"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <form id="predictionForm" action="/predict" method="post">
+
+                            <!-- Original Features -->
+                            <div id="originalForm" class="row g-3">
+                                <div class="col-12 mb-3">
+                                    <h5 class="text-primary border-bottom pb-2">Cell Features (Scale 1-10)</h5>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label small">Clump Thickness</label>
+                                    <input type="number" name="clump_thickness" class="form-control form-control-sm"
+                                        min="1" max="10">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small">Uniform Cell Size</label>
+                                    <input type="number" name="uniform_cell_size" class="form-control form-control-sm"
+                                        min="1" max="10">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small">Uniform Cell Shape</label>
+                                    <input type="number" name="uniform_cell_shape" class="form-control form-control-sm"
+                                        min="1" max="10">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small">Marginal Adhesion</label>
+                                    <input type="number" name="marginal_adhesion" class="form-control form-control-sm"
+                                        min="1" max="10">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small">Single Epithelial Size</label>
+                                    <input type="number" name="single_epithelial_size"
+                                        class="form-control form-control-sm" min="1" max="10">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small">Bare Nuclei</label>
+                                    <input type="number" name="bare_nuclei" class="form-control form-control-sm" min="1"
+                                        max="10">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small">Bland Chromatin</label>
+                                    <input type="number" name="bland_chromatin" class="form-control form-control-sm"
+                                        min="1" max="10">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small">Normal Nucleoli</label>
+                                    <input type="number" name="normal_nucleoli" class="form-control form-control-sm"
+                                        min="1" max="10">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small">Mitoses</label>
+                                    <input type="number" name="mitoses" class="form-control form-control-sm" min="1"
+                                        max="10">
+                                </div>
+                            </div>
+
+                            <!-- Comprehensive Features -->
+                            <div id="comprehensiveForm" class="row g-3 hidden">
+                                <div class="col-12 mb-3">
+                                    <h5 class="text-primary border-bottom pb-2">Mean Features</h5>
+                                </div>
+                                <!-- Condensed inputs for narrower view -->
+                                <div class="col-md-6">
+                                    <label class="form-label small">Radius Mean</label>
+                                    <input type="number" name="radius_mean" class="form-control form-control-sm"
+                                        step="0.01">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small">Texture Mean</label>
+                                    <input type="number" name="texture_mean" class="form-control form-control-sm"
+                                        step="0.01">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small">Perimeter Mean</label>
+                                    <input type="number" name="perimeter_mean" class="form-control form-control-sm"
+                                        step="0.01">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small">Area Mean</label>
+                                    <input type="number" name="area_mean" class="form-control form-control-sm"
+                                        step="0.01">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small">Smoothness Mean</label>
+                                    <input type="number" name="smoothness_mean" class="form-control form-control-sm"
+                                        step="0.01">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small">Compactness Mean</label>
+                                    <input type="number" name="compactness_mean" class="form-control form-control-sm"
+                                        step="0.01">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small">Concavity Mean</label>
+                                    <input type="number" name="concavity_mean" class="form-control form-control-sm"
+                                        step="0.01">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small">Concave Points Mean</label>
+                                    <input type="number" name="concave_points_mean" class="form-control form-control-sm"
+                                        step="0.01">
+                                </div>
+
+                                <div class="col-12 text-center mt-2">
+                                    <small class="text-muted">... more fields ...</small>
+                                </div>
+                            </div>
+
+                            <div class="row mt-4" id="submitBtnRow">
+                                <div class="col-12 text-center d-grid gap-2">
+                                    <div class="btn-group w-100 mb-2">
+                                        <button type="button" class="btn btn-outline-secondary"
+                                            onclick="fillSampleData()">
+                                            Benign
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary"
+                                            onclick="fillSampleData(true)">
+                                            Malignant
+                                        </button>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary w-100">
+                                        <i class="fas fa-robot me-2"></i> Analyze
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            {% if show_results %}
+            <div class="col-lg-8 animate-up" id="results">
+
+                <!-- Main Result Card -->
+                <div class="prediction-result shadow {{ 'malignant' if 'Malignant' in prediction_text else 'benign' }}">
+                    <h1 class="display-4 fw-bold">
+                        <i
+                            class="fas {{ 'fa-biohazard' if 'Malignant' in prediction_text else 'fa-shield-heart' }}"></i>
+                        {{ prediction_text|replace("Prediction: ", "") }}
+                    </h1>
+                    <p class="lead mb-0">Assessed Risk Level: {{ risk_level }}</p>
+                    <div class="confidence-badge">
+                        <i class="fas fa-chart-pie me-1"></i> Confidence: {{ confidence }}%
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Charts -->
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-chart-radar me-2"></i>Feature Radar</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="radarChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-percentage me-2"></i>Probability Distribution</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="pieChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12 mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <i class="fas fa-chart-bar me-2"></i> Detailed Feature Analysis
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container" style="height: 350px;">
+                                    <canvas id="barChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Insights -->
+                <div class="card mt-2">
+                    <div class="card-header bg-warning bg-opacity-10 text-warning-emphasis">
+                        <i class="fas fa-lightbulb me-2"></i> Automated Insights
+                    </div>
+                    <div class="card-body">
+                        {% if insights %}
+                        {% for insight in insights %}
+                        <div class="insight-card">
+                            <i class="fas fa-info-circle text-primary me-2"></i> {{ insight }}
+                        </div>
+                        {% endfor %}
+                        {% else %}
+                        <p class="text-muted">No specific insights generated.</p>
+                        {% endif %}
+
+                        <div class="alert alert-info mt-3 mb-0 fs-6">
+                            <strong><i class="fas fa-user-md"></i> Note:</strong>
+                            This result is generated by an AI model and should not be considered a definitive medical
+                            diagnosis.
+                            Please consult with a healthcare professional.
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // Toggle Forms
+        function switchForm(type) {
+            const originalForm = document.getElementById('originalForm');
+            const comprehensiveForm = document.getElementById('comprehensiveForm');
+            const imageForm = document.getElementById('imageForm');
+            const submitRow = document.getElementById('submitBtnRow');
+            const btns = document.querySelectorAll('.toggle-btn');
+
+            // Reset visibility
+            originalForm.classList.add('hidden');
+            comprehensiveForm.classList.add('hidden');
+            if (imageForm) imageForm.classList.add('hidden');
+            btns.forEach(b => b.classList.remove('active'));
+            if (submitRow) submitRow.classList.remove('hidden');
+
+            if (type === 'original') {
+                originalForm.classList.remove('hidden');
+                btns[0].classList.add('active');
+            } else if (type === 'comprehensive') {
+                comprehensiveForm.classList.remove('hidden');
+                btns[1].classList.add('active');
+            } else if (type === 'image') {
+                if (imageForm) imageForm.classList.remove('hidden');
+                if (submitRow) submitRow.classList.add('hidden');
+                if (btns[2]) btns[2].classList.add('active');
+            }
+        }
+
+        // Image Preview
+        const imgInput = document.getElementById('imageInput');
+        if (imgInput) {
+            imgInput.addEventListener('change', function (e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        const preview = document.getElementById('imagePreview');
+                        const img = preview.querySelector('img');
+                        img.src = e.target.result;
+                        preview.classList.remove('hidden');
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        // Predict Image Logic
+        async function predictImage() {
+            const fileInput = document.getElementById('imageInput');
+            if (!fileInput || fileInput.files.length === 0) {
+                showImageError('Please select an image first.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            const btn = document.querySelector('#imageForm button');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
+            btn.disabled = true;
+
+            // Hide previous results/errors
+            document.getElementById('imageResult').classList.add('hidden');
+            document.getElementById('imageError').classList.add('hidden');
+
+            try {
+                const response = await fetch('/predict-image', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.error) {
+                    showImageError(result.error);
+                } else {
+                    const resCard = document.getElementById('imgResultCard');
+                    const resTitle = document.getElementById('imgPrediction');
+                    const resDensity = document.getElementById('imgDensity');
+                    const resConf = document.getElementById('imgConfidence');
+
+                    document.getElementById('imageResult').classList.remove('hidden');
+
+                    resTitle.innerText = result.prediction;
+                    resDensity.innerText = result.density !== 'Unknown' ? 'Density: ' + result.density : '';
+                    resConf.innerText = 'Confidence: ' + result.confidence.toFixed(1) + '%';
+
+                    if (result.prediction.toLowerCase().includes('malignant')) {
+                        resCard.className = 'prediction-result shadow malignant';
+                    } else {
+                        resCard.className = 'prediction-result shadow benign';
+                    }
+                }
+            } catch (error) {
+                showImageError('Network or server error. Please try again.');
+                console.error(error);
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        function showImageError(message) {
+            const errDiv = document.getElementById('imageError');
+            document.getElementById('imageErrorMsg').innerText = message;
+            errDiv.classList.remove('hidden');
+        }
+
+        // Fill Sample Data
+        function fillSampleData(isMalignant = false) {
+            // Values for Wisconsin dataset (1-10)
+            const benign = {
+                clump_thickness: 2, uniform_cell_size: 1, uniform_cell_shape: 1,
+                marginal_adhesion: 1, single_epithelial_size: 2, bare_nuclei: 1,
+                bland_chromatin: 3, normal_nucleoli: 1, mitoses: 1
+            };
+
+            const malignant = {
+                clump_thickness: 8, uniform_cell_size: 10, uniform_cell_shape: 10,
+                marginal_adhesion: 8, single_epithelial_size: 7, bare_nuclei: 10,
+                bland_chromatin: 9, normal_nucleoli: 7, mitoses: 1
+            };
+
+            const data = isMalignant ? malignant : benign;
+
+            for (const [key, value] of Object.entries(data)) {
+                // For original form
+                let input = document.querySelector(`input[name="${key}"]`);
+                if (input) input.value = value;
+            }
+
+            // Also fill some comprehensive data if visible or just in case
+            if (isMalignant) {
+                if (document.querySelector('input[name="radius_mean"]')) document.querySelector('input[name="radius_mean"]').value = 17.99;
+                if (document.querySelector('input[name="texture_mean"]')) document.querySelector('input[name="texture_mean"]').value = 10.38;
+                if (document.querySelector('input[name="perimeter_mean"]')) document.querySelector('input[name="perimeter_mean"]').value = 122.8;
+                if (document.querySelector('input[name="area_mean"]')) document.querySelector('input[name="area_mean"]').value = 1001;
+            } else {
+                if (document.querySelector('input[name="radius_mean"]')) document.querySelector('input[name="radius_mean"]').value = 13.54;
+                if (document.querySelector('input[name="texture_mean"]')) document.querySelector('input[name="texture_mean"]').value = 14.36;
+                if (document.querySelector('input[name="perimeter_mean"]')) document.querySelector('input[name="perimeter_mean"]').value = 87.46;
+                if (document.querySelector('input[name="area_mean"]')) document.querySelector('input[name="area_mean"]').value = 566.3;
+            }
+        }
+
+        // Scroll to results if present
+        window.onload = function () {
+            const results = document.getElementById('results');
+            if (results) {
+                results.scrollIntoView({ behavior: 'smooth' });
+                initCharts();
+            }
+        };
+
+        // Initialize Charts
+        function initCharts() {
+            // Data passed from Flask
+            // We use simple safe checks
+            const featureNames = {{ feature_names | default (none) | tojson | safe
+        }};
+        const featureValues = {{ feature_values | default (none) | tojson | safe }};
+        const predictionProbs = {{ prediction_probs | default (none) | tojson | safe }}; // [Benign, Malignant]
+
+        // Color palette
+        const colors = {
+            primary: '#4361ee',
+            secondary: '#3f37c9',
+            success: '#4cc9f0',
+            danger: '#f72585',
+            warning: '#f8961e'
+        };
+
+        // Radar Chart
+        const ctxRadar = document.getElementById('radarChart');
+        if (ctxRadar && featureNames) {
+            new Chart(ctxRadar, {
+                type: 'radar',
+                data: {
+                    labels: featureNames,
+                    datasets: [{
+                        label: 'Patient Metrics',
+                        data: featureValues,
+                        fill: true,
+                        backgroundColor: 'rgba(67, 97, 238, 0.2)',
+                        borderColor: colors.primary,
+                        pointBackgroundColor: colors.secondary,
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: colors.secondary
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(0,0,0,0.1)' },
+                            grid: { color: 'rgba(0,0,0,0.05)' },
+                            suggestedMin: 0
+                        }
+                    }
+                }
+            });
+        }
+
+        // Pie Chart (Probability)
+        const ctxPie = document.getElementById('pieChart');
+        if (ctxPie && predictionProbs) {
+            new Chart(ctxPie, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Benign', 'Malignant'],
+                    datasets: [{
+                        data: predictionProbs || [0.5, 0.5], // Fallback
+                        backgroundColor: [colors.success, colors.danger],
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        }
+
+        // Bar Chart
+        const ctxBar = document.getElementById('barChart');
+        if (ctxBar && featureNames && featureValues) {
+            // Calculate mean for coloring
+            const meanVal = featureValues.reduce((a, b) => a + b, 0) / featureValues.length;
+
+            new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: featureNames,
+                    datasets: [{
+                        label: 'Measured Value',
+                        data: featureValues,
+                        backgroundColor: featureValues.map(v => v > meanVal ? colors.danger : colors.success),
+                        borderRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+        }
+    </script>
+</body>
+
+</html>

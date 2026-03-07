@@ -1,0 +1,16 @@
+1. Loading model...
+Attempting to load full model from weights\modeldense1.h5...
+Model loaded successfully using load_model.
+2. Model loaded. Verifying weights...
+3. Processing test_image.jpg...
+4. Running prediction...
+   Raw predictions: [0.17783882 0.06136498 0.21364433 0.02282683 0.3437061  0.10150962
+ 0.04265803 0.03645132]
+
+=== RESULTS ===
+Prediction: Benign
+Confidence: 34.37%
+Density: 3
+Details: {'Benign with Density=1': 0.17783881723880768, 'Malignant with Density=1': 0.06136498227715492, 'Benign with Density=2': 0.21364432573318481, 'Malignant with Density=2': 0.022826828062534332, 'Benign with Density=3': 0.3437061011791229, 'Malignant with Density=3': 0.10150961577892303, 'Benign with Density=4': 0.04265802726149559, 'Malignant with Density=4': 0.036451321095228195}
+
+Note: Confidence is low. This is expected for a dummy/random image, but ensures pipeline works.

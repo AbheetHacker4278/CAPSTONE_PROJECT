@@ -1,0 +1,26 @@
+Testing load_model on weights/modeldense1.h5
+SUCCESS: load_model worked!
+Model: "sequential"
+_________________________________________________________________
+ Layer (type)                Output Shape              Param #   
+=================================================================
+ densenet201 (Functional)    (None, 1920)              18321984  
+                                                                 
+ batch_normalization (BatchN  (None, 1920)             7680      
+ ormalization)                                                   
+                                                                 
+ dense (Dense)               (None, 2048)              3934208   
+                                                                 
+ batch_normalization_1 (Batc  (None, 2048)             8192      
+ hNormalization)                                                 
+                                                                 
+ dense_1 (Dense)             (None, 8)                 16392     
+                                                                 
+=================================================================
+Total params: 22,288,456
+Trainable params: 22,051,464
+Non-trainable params: 236,992
+_________________________________________________________________
+--------------------
+Testing load_weights on created model
+SUCCESS: load_weights worked!
