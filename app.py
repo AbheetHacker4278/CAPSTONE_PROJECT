@@ -118,16 +118,22 @@ except Exception as e:
     model = None
 
 # ── Load image classification model ──────────────────────────────────────────
-try:
-    logger.info("Loading image analysis model...")
-    image_model = model_utils.load_cancer_model()
-    if image_model is not None:
-        logger.info("Image analysis model loaded.")
-    else:
-        logger.warning("Image analysis model returned None (weights may be missing).")
-except Exception as e:
-    logger.warning(f"Failed to load image model: {e}")
+# NOTE: TensorFlow models are very heavy and will crash Render's 512MB Free Tier.
+# We skip loading the local model on Render and use Gemini fallback instead.
+if os.getenv("RENDER"):
+    logger.info("Detected Render environment. Skipping local heavy model to prevent OOM.")
     image_model = None
+else:
+    try:
+        logger.info("Loading image analysis model...")
+        image_model = model_utils.load_cancer_model()
+        if image_model is not None:
+            logger.info("Image analysis model loaded.")
+        else:
+            logger.warning("Image analysis model returned None (weights may be missing).")
+    except Exception as e:
+        logger.warning(f"Failed to load image model: {e}")
+        image_model = None
 
 # Feature names for the Wisconsin dataset (9 features)
 ORIGINAL_FEATURES = [
