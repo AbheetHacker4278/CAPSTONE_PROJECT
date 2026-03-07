@@ -21,10 +21,16 @@ warnings.filterwarnings('ignore')
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# ── Gemini API setup ──────────────────────────────────────────────────────────
-# Prioritize key from .env, fallback to old key but warn user
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyAj8HmH61IiXQ-pXHB1slpT3Ma2T37dq6A")
-GEMINI_MODELS = ["gemini-3-flash-preview", "gemini-1.5-flash", "gemini-1.5-pro"]
+# Gemini API setup ──────────────────────────────────────────────────────────
+# Key MUST be provided in .env file
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+
+if not GEMINI_API_KEY:
+    logger.error("GEMINI_API_KEY not found in environment variables. Please check your .env file.")
+    # You might want to raise an error or handle this gracefully
+    # raise ValueError("Missing GEMINI_API_KEY")
+
+GEMINI_MODELS = ["gemini-1.5-flash", "gemini-1.5-pro"]
 genai.configure(api_key=GEMINI_API_KEY)
 
 def _get_gemini_model():

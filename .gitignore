@@ -1,0 +1,30 @@
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv
+venv/
+ENV/
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+
+# Application specific
+static/uploads/*
+!static/uploads/.gitkeep
+model.pkl
+*.pkl
+debug_log.txt
+verify_log.txt
+load_test_result.txt
+verification_result.txt
+
+# IDEs
+.vscode/
+.idea/
+.gradio/
