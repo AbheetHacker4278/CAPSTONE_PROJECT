@@ -24,14 +24,28 @@ warnings.filterwarnings('ignore')
 import model_utils
 
 # Gemini API setup ──────────────────────────────────────────────────────────
-# Key MUST be provided in .env file
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+# Support multiple keys (comma-separated) to bypass quota limits
+GEMINI_API_KEYS = [k.strip() for k in os.getenv("GEMINI_API_KEY", "").split(",") if k.strip()]
+CURRENT_KEY_INDEX = 0
 
-if not GEMINI_API_KEY:
-    logger.error("GEMINI_API_KEY not found in environment variables. Please check your .env file.")
+if not GEMINI_API_KEYS:
+    logger.error("No GEMINI_API_KEY found in environment variables. Please check your .env file.")
+else:
+    genai.configure(api_key=GEMINI_API_KEYS[0])
 
+# Using user-specified model versions
 GEMINI_MODELS = ["gemini-3-flash-preview", "gemini-2.5-pro"]
-genai.configure(api_key=GEMINI_API_KEY)
+
+def rotate_api_key():
+    """Rotates to the next available API key if quota is hit."""
+    global CURRENT_KEY_INDEX
+    if len(GEMINI_API_KEYS) > 1:
+        CURRENT_KEY_INDEX = (CURRENT_KEY_INDEX + 1) % len(GEMINI_API_KEYS)
+        new_key = GEMINI_API_KEYS[CURRENT_KEY_INDEX]
+        genai.configure(api_key=new_key)
+        logger.info(f"Rotated to Gemini API key index {CURRENT_KEY_INDEX}")
+        return True
+    return False
 
 def _get_gemini_model():
     """Returns the first available Gemini model instance."""
@@ -90,9 +104,13 @@ def is_mammogram_image(image_bytes: bytes) -> tuple:
 
         except Exception as e:
             err_str = str(e).lower()
-            if "quota" in err_str or "resource" in err_str or "429" in err_str or "exhausted" in err_str:
-                logger.warning(f"Gemini ({model_name}) quota exceeded, trying next model...")
-                continue  # try next model
+            if "quota" in err_str or "429" in err_str or "exhausted" in err_str or "limit" in err_str:
+                logger.warning(f"Gemini ({model_name}) quota exceeded.")
+                if rotate_api_key():
+                    continue # try again with new key
+                else:
+                    logger.warning("No more Gemini keys available, trying next model...")
+                    continue  # try next model
             else:
                 logger.warning(f"Gemini ({model_name}) error ({e}); allowing image through as fallback.")
                 return True, ""  # non-quota error → fail open
@@ -384,6 +402,11 @@ def predict_with_gemini_fallback(image_bytes):
                 response_text = resp.text
                 break
             except Exception as e:
+                err_str = str(e).lower()
+                if "quota" in err_str or "429" in err_str:
+                    logger.warning(f"Gemini prediction quota hit. Attempting key rotation.")
+                    if rotate_api_key():
+                        continue # Retry with same model but new key
                 logger.warning(f"Gemini prediction failed on {model_name}: {e}")
                 continue
         
