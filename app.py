@@ -30,7 +30,7 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 if not GEMINI_API_KEY:
     logger.error("GEMINI_API_KEY not found in environment variables. Please check your .env file.")
 
-GEMINI_MODELS = ["gemini-3-flash-preview", "gemini-1.5-flash", "gemini-1.5-pro"]
+GEMINI_MODELS = ["gemini-3-flash-preview", "gemini-2.5-pro"]
 genai.configure(api_key=GEMINI_API_KEY)
 
 def _get_gemini_model():
