@@ -24,6 +24,14 @@ except Exception as e:
     logger.error(f"Error loading model: {e}")
     image_model = None
 
+@app.route('/', methods=['GET'])
+def root():
+    return jsonify({
+        "status": "online",
+        "message": "Breast Cancer Model API is running.",
+        "endpoints": ["/predict (POST)", "/health (GET)"]
+    })
+
 @app.route('/health', methods=['GET'])
 def health():
     return jsonify({"status": "healthy", "model_loaded": image_model is not None})
