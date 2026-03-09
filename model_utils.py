@@ -1,4 +1,5 @@
 import os
+import requests
 import tensorflow as tf
 from tensorflow.keras.applications import DenseNet201
 from tensorflow.keras.models import Sequential, Model
@@ -218,3 +219,30 @@ def get_prediction_result(predictions):
     except Exception as e:
         print(f"Error parsing prediction: {e}")
         return "Error", 0.0, "Unknown", {}
+
+def predict_remote(image_bytes, url):
+    """
+    Sends image bytes to a remote Model API for inference.
+    """
+    try:
+        files = {'file': ('image.jpg', image_bytes, 'image/jpeg')}
+        response = requests.post(f"{url.rstrip('/')}/predict", files=files, timeout=30)
+        
+        if response.status_code == 200:
+            data = response.json()
+            if data.get('status') == 'success':
+                return (
+                    data.get('prediction'),
+                    data.get('confidence'),
+                    data.get('density'),
+                    data.get('details')
+                )
+            else:
+                print(f"Remote API error: {data.get('error')}")
+                return None
+        else:
+            print(f"Remote API HTTP error: {response.status_code}")
+            return None
+    except Exception as e:
+        print(f"Remote inference request failed: {e}")
+        return None

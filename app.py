@@ -294,7 +294,24 @@ def predict_image():
             )
             return jsonify({'error': msg}), 422
 
-        # ── Local Model Prediction ───────────────────────────────────────────
+        # ── Remote Model Inference (Render / Microservice) ───────────────────
+        remote_url = os.getenv("REMOTE_MODEL_URL")
+        if remote_url:
+            logger.info(f"Using remote model API at {remote_url}")
+            remote_res = model_utils.predict_remote(image_bytes, remote_url)
+            if remote_res:
+                result, confidence, density, full_results = remote_res
+                return jsonify({
+                    'status': 'success',
+                    'prediction': result,
+                    'confidence': float(confidence * 100),
+                    'density': density,
+                    'details': full_results
+                })
+            else:
+                logger.warning("Remote inference failed; falling back to Gemini.")
+
+        # ── Local Model Prediction (Local Dev only) ──────────────────────────
         # Use local model ONLY if it has valid weights loaded
         if image_model is not None and getattr(image_model, 'weights_loaded', False):
             processed_img = model_utils.preprocess_image(file)

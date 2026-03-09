@@ -9,3 +9,5 @@ services:
         sync: false
       - key: PYTHON_VERSION
         value: 3.10.0
+      - key: REMOTE_MODEL_URL
+        sync: false
