@@ -16,17 +16,10 @@ To bypass Render's 512MB RAM limit, follow these steps to deploy your Model API 
    - `requirements.txt`
    - `weights/` folder (containing `modeldense1.h5`)
 
-3. **Dockerfile for Hugging Face**:
-   Make a file named `Dockerfile`:
-   ```dockerfile
-   FROM python:3.10
-   WORKDIR /app
-   COPY . .
-   RUN pip install --no-cache-dir -r requirements.txt
-   EXPOSE 7860
-   CMD ["python", "model_api.py"]
-   ```
-   *Note: I've updated `model_api.py` to handle the `PORT` env var.*
+3. **Add Dockerfile**:
+   - I have created `Dockerfile.model` in your project.
+   - When uploading to Hugging Face, rename it to just `Dockerfile`.
+   - It is pre-configured with all necessary system dependencies (OpenCV, etc.).
 
 4. **Update Render Environment Variable**:
    - Once your Space is "Running", copy its URL (e.g., `https://user-space.hf.space`).
