@@ -279,22 +279,11 @@ def predict_image():
         return jsonify({'error': 'No file selected'}), 400
 
     try:
-        # ── Gemini pre-filter: verify this is actually a mammogram ────────────
         file.seek(0)
         image_bytes = file.read()
-        
-        # If model is loaded, verify it's a mammogram first
-        # If model is NOT loaded, we will use Gemini for prediction anyway, so verification is implicit
-        is_valid, rejection_reason = is_mammogram_image(image_bytes)
-        if not is_valid:
-            msg = (
-                f"The uploaded image does not appear to be a mammogram or breast scan. "
-                f"{rejection_reason + ' ' if rejection_reason else ''}"
-                f"Please upload a valid mammogram, breast ultrasound, or histology image."
-            )
-            return jsonify({'error': msg}), 422
 
         # ── Remote Model Inference (Render / Microservice) ───────────────────
+        # Skip local Gemini pre-filter if using remote model (it has its own check)
         remote_url = os.getenv("REMOTE_MODEL_URL")
         if remote_url:
             logger.info(f"Using remote model API at {remote_url}")
@@ -309,7 +298,17 @@ def predict_image():
                     'details': full_results
                 })
             else:
-                logger.warning("Remote inference failed; falling back to Gemini.")
+                logger.warning("Remote inference failed or rejected; falling back to Gemini.")
+
+        # ── Gemini pre-filter (Fallback/Local Dev) ──────────────────────────
+        is_valid, rejection_reason = is_mammogram_image(image_bytes)
+        if not is_valid:
+            msg = (
+                f"The uploaded image does not appear to be a mammogram or breast scan. "
+                f"{rejection_reason + ' ' if rejection_reason else ''}"
+                f"Please upload a valid mammogram, breast ultrasound, or histology image."
+            )
+            return jsonify({'error': msg}), 422
 
         # ── Local Model Prediction (Local Dev only) ──────────────────────────
         # Use local model ONLY if it has valid weights loaded

@@ -1,11 +1,6 @@
 import os
 import requests
-import tensorflow as tf
-from tensorflow.keras.applications import DenseNet201
-from tensorflow.keras.models import Sequential, Model
-from tensorflow.keras.layers import Dense, BatchNormalization
-from tensorflow.keras.regularizers import l1_l2
-from tensorflow.keras.applications.densenet import preprocess_input as densenet_preprocess
+# Move tensorflow imports inside functions to avoid loading it on Render
 import cv2
 import numpy as np
 
@@ -25,6 +20,12 @@ def ensure_directories():
 
 def create_model():
     """Recreates the DenseNet201 architecture used in the external repo"""
+    import tensorflow as tf
+    from tensorflow.keras.applications import DenseNet201
+    from tensorflow.keras.models import Sequential
+    from tensorflow.keras.layers import Dense, BatchNormalization
+    from tensorflow.keras.regularizers import l1_l2
+    
     # Note: The external repo used 'pooling=max' and 'weights=imagenet'
     conv_base = DenseNet201(input_shape=(224, 224, 3), include_top=False, pooling='max', weights='imagenet')
     
@@ -49,6 +50,7 @@ def load_cancer_model():
     # download_weights_if_needed() - Removed as per user request
     
     try:
+        import tensorflow as tf
         # Strategy: Create structure then load weights
         # The original repo did model.save('model/model.h5') which saves architecture+weights
         # But also had a separate weights download. 
@@ -69,6 +71,7 @@ def load_cancer_model():
         # Fallback: Create structure then load weights
         model = create_model()
         # Compile to avoid warnings
+        import tensorflow as tf
         model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.00001), metrics=["accuracy"], loss='categorical_crossentropy')
         
         if os.path.exists(WEIGHTS_PATH):
@@ -135,6 +138,7 @@ def preprocess_image(image_file):
         # 3. DenseNet specific normalization
         # Note: img is currently 0-255 uint8, preprocess_input expects 0-255 float
         img = img.astype('float32')
+        from tensorflow.keras.applications.densenet import preprocess_input as densenet_preprocess
         img = densenet_preprocess(img)
         
         # Reshape for model input (batch size 1)
