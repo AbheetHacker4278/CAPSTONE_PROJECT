@@ -4,7 +4,7 @@ pandas
 scikit-learn
 matplotlib
 seaborn
-tensorflow
+tensorflow==2.15.0
 opencv-python
 Pillow
 protobuf<4

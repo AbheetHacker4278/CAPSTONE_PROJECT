@@ -13,7 +13,7 @@ To bypass Render's 512MB RAM limit, follow these steps to deploy your Model API 
 2. **Upload Files**:
    - `model_api.py` (Rename it to `app.py` for Hugging Face or specify it in Dockerfile)
    - `model_utils.py`
-   - `requirements.txt`
+   - `requirements.txt` (Pinned to `tensorflow==2.15.0`)
    - `weights/` folder (containing `modeldense1.h5`)
 
 3. **Add Dockerfile**:
