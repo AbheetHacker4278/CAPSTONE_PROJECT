@@ -33,8 +33,8 @@ if not GEMINI_API_KEYS:
 else:
     genai.configure(api_key=GEMINI_API_KEYS[0])
 
-# Using user-specified model versions
-GEMINI_MODELS = ["gemini-3-flash-preview", "gemini-2.5-pro"]
+# Using the latest Gemini 3 model versions
+GEMINI_MODELS = ["gemini-3-flash-preview", "gemini-3-pro"]
 
 def rotate_api_key():
     """Rotates to the next available API key if quota is hit."""
@@ -75,35 +75,44 @@ def is_mammogram_image(image_bytes: bytes) -> tuple:
 
     prompt = (
         "You are a medical image classifier. "
-        "Look at this image and answer ONLY with one of these two responses:\n"
-        "YES - if the image is a mammogram, breast ultrasound, or breast histology/pathology slide.\n"
-        "NO: <reason> - if the image is anything else (e.g. a selfie, landscape, X-ray of another body part, etc.).\n"
-        "Do not add any other text."
+        "Analyze the provided image carefully.\n\n"
+        "1. If the image is a mammogram, breast ultrasound, or breast histology/pathology slide, reply exactly with: YES\n"
+        "2. If the image is NOT a breast-related medical scan (e.g., it is a person, a landscape, a document, an X-ray of another body part, or a completely unrelated object), reply with: NO: <reason>\n\n"
+        "Be very strict. If you are unsure, err on the side of 'NO'. "
+        "Do not add any other text or conversational filler."
     )
 
+    last_error = None
     for model_name in GEMINI_MODELS:
         try:
             gemini_model = genai.GenerativeModel(model_name)
-            import google.api_core.exceptions as gexc
-
+            
             response = gemini_model.generate_content([
                 {"mime_type": mime, "data": base64.b64encode(image_bytes).decode("utf-8")},
                 prompt
             ])
+
+            if not response or not response.text:
+                logger.warning(f"Gemini ({model_name}) returned an empty response.")
+                continue
 
             answer = response.text.strip().upper()
             logger.info(f"Gemini ({model_name}) mammogram check: {response.text.strip()!r}")
 
             if answer.startswith("YES"):
                 return True, ""
-            else:
+            elif answer.startswith("NO"):
                 reason = response.text.strip()
                 if ":" in reason:
                     reason = reason.split(":", 1)[1].strip()
                 return False, reason
+            else:
+                # Unexpected response format, but likely a rejection if it didn't say YES
+                return False, "Image could not be verified as a valid breast scan."
 
         except Exception as e:
             err_str = str(e).lower()
+            last_error = e
             if "quota" in err_str or "429" in err_str or "exhausted" in err_str or "limit" in err_str:
                 logger.warning(f"Gemini ({model_name}) quota exceeded.")
                 if rotate_api_key():
@@ -112,11 +121,17 @@ def is_mammogram_image(image_bytes: bytes) -> tuple:
                     logger.warning("No more Gemini keys available, trying next model...")
                     continue  # try next model
             else:
-                logger.warning(f"Gemini ({model_name}) error ({e}); allowing image through as fallback.")
-                return True, ""  # non-quota error → fail open
+                logger.error(f"Gemini ({model_name}) error during validation: {e}")
+                continue # try next model if one fails
 
-    # All models exhausted quota → fail open so the app still works
-    logger.warning("All Gemini models hit quota limits; skipping validation and allowing image through.")
+    # If we reached here, all models failed or hit quota
+    if last_error:
+        err_msg = str(last_error).lower()
+        if "quota" in err_msg or "429" in err_msg:
+             logger.warning("All Gemini models hit quota limits; allowing image through as emergency fallback.")
+             return True, ""
+    
+    logger.warning("Validation failed due to API errors; allowing image through to maintain availability.")
     return True, ""
 
 
