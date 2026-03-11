@@ -34,27 +34,56 @@ else:
     genai.configure(api_key=GEMINI_API_KEYS[0])
 
 # Using the latest Gemini 3 model versions
-GEMINI_MODELS = ["gemini-3-flash-preview", "gemini-3-pro"]
+GEMINI_MODELS = ["gemini-3-flash-preview", "gemini-2.5-pro"]
 
-def rotate_api_key():
-    """Rotates to the next available API key if quota is hit."""
+def safe_gemini_request(prompt, image_bytes=None, mime_type=None, generation_config=None):
+    """
+    Robustly sends a request to Gemini, rotating through all API keys and all models
+    until a successful response is received or all options are exhausted.
+    """
     global CURRENT_KEY_INDEX
-    if len(GEMINI_API_KEYS) > 1:
-        CURRENT_KEY_INDEX = (CURRENT_KEY_INDEX + 1) % len(GEMINI_API_KEYS)
-        new_key = GEMINI_API_KEYS[CURRENT_KEY_INDEX]
-        genai.configure(api_key=new_key)
-        logger.info(f"Rotated to Gemini API key index {CURRENT_KEY_INDEX}")
-        return True
-    return False
+    
+    num_keys = len(GEMINI_API_KEYS)
+    if num_keys == 0:
+        logger.error("No Gemini API keys configured.")
+        return None
 
-def _get_gemini_model():
-    """Returns the first available Gemini model instance."""
-    for name in GEMINI_MODELS:
-        try:
-            return genai.GenerativeModel(name), name
-        except Exception:
-            continue
-    return None, None
+    for model_name in GEMINI_MODELS:
+        # For each model, try all keys starting from the current one
+        for _ in range(num_keys):
+            current_key = GEMINI_API_KEYS[CURRENT_KEY_INDEX]
+            try:
+                genai.configure(api_key=current_key)
+                model = genai.GenerativeModel(model_name)
+                
+                content = []
+                if image_bytes:
+                    content.append({"mime_type": mime_type or "image/jpeg", "data": base64.b64encode(image_bytes).decode("utf-8")})
+                content.append(prompt)
+                
+                logger.info(f"Attempting Gemini request with model '{model_name}' and key index {CURRENT_KEY_INDEX}")
+                response = model.generate_content(content, generation_config=generation_config)
+                
+                if response and response.text:
+                    return response.text
+                else:
+                    logger.warning(f"Empty response from {model_name} using key index {CURRENT_KEY_INDEX}")
+                    CURRENT_KEY_INDEX = (CURRENT_KEY_INDEX + 1) % num_keys
+            except Exception as e:
+                err_str = str(e).lower()
+                if any(x in err_str for x in ["quota", "429", "limit", "exhausted"]):
+                    logger.warning(f"Quota exceeded for {model_name} with key index {CURRENT_KEY_INDEX}. Rotating...")
+                    CURRENT_KEY_INDEX = (CURRENT_KEY_INDEX + 1) % num_keys
+                    continue
+                else:
+                    logger.error(f"Error with {model_name} (key index {CURRENT_KEY_INDEX}): {e}")
+                    CURRENT_KEY_INDEX = (CURRENT_KEY_INDEX + 1) % num_keys
+                    continue
+        
+        logger.info(f"Model {model_name} failed with all keys. Trying next model...")
+    
+    logger.error("All Gemini models and API keys exhausted.")
+    return None
 
 def is_mammogram_image(image_bytes: bytes) -> tuple:
     """
@@ -82,57 +111,24 @@ def is_mammogram_image(image_bytes: bytes) -> tuple:
         "Do not add any other text or conversational filler."
     )
 
-    last_error = None
-    for model_name in GEMINI_MODELS:
-        try:
-            gemini_model = genai.GenerativeModel(model_name)
-            
-            response = gemini_model.generate_content([
-                {"mime_type": mime, "data": base64.b64encode(image_bytes).decode("utf-8")},
-                prompt
-            ])
-
-            if not response or not response.text:
-                logger.warning(f"Gemini ({model_name}) returned an empty response.")
-                continue
-
-            answer = response.text.strip().upper()
-            logger.info(f"Gemini ({model_name}) mammogram check: {response.text.strip()!r}")
-
-            if answer.startswith("YES"):
-                return True, ""
-            elif answer.startswith("NO"):
-                reason = response.text.strip()
-                if ":" in reason:
-                    reason = reason.split(":", 1)[1].strip()
-                return False, reason
-            else:
-                # Unexpected response format, but likely a rejection if it didn't say YES
-                return False, "Image could not be verified as a valid breast scan."
-
-        except Exception as e:
-            err_str = str(e).lower()
-            last_error = e
-            if "quota" in err_str or "429" in err_str or "exhausted" in err_str or "limit" in err_str:
-                logger.warning(f"Gemini ({model_name}) quota exceeded.")
-                if rotate_api_key():
-                    continue # try again with new key
-                else:
-                    logger.warning("No more Gemini keys available, trying next model...")
-                    continue  # try next model
-            else:
-                logger.error(f"Gemini ({model_name}) error during validation: {e}")
-                continue # try next model if one fails
-
-    # If we reached here, all models failed or hit quota
-    if last_error:
-        err_msg = str(last_error).lower()
-        if "quota" in err_msg or "429" in err_msg:
-             logger.warning("All Gemini models hit quota limits; allowing image through as emergency fallback.")
-             return True, ""
+    response_text = safe_gemini_request(prompt, image_bytes, mime)
     
-    logger.warning("Validation failed due to API errors; allowing image through to maintain availability.")
-    return True, ""
+    if not response_text:
+        logger.warning("Gemini validation failed after trying all keys/models; allowing image through as emergency fallback.")
+        return True, ""
+
+    answer = response_text.strip().upper()
+    logger.info(f"Gemini mammogram check result: {response_text.strip()!r}")
+
+    if answer.startswith("YES"):
+        return True, ""
+    elif answer.startswith("NO"):
+        reason = response_text.strip()
+        if ":" in reason:
+            reason = reason.split(":", 1)[1].strip()
+        return False, reason
+    else:
+        return False, "Image could not be verified as a valid breast scan."
 
 
 app = Flask(__name__)
@@ -402,31 +398,11 @@ def predict_with_gemini_fallback(image_bytes):
             '{"diagnosis": "Benign/Malignant", "confidence": <number>, "density": "1/2/3/4", "explanation": "..."}'
         )
         
-        # Try models in chain
-        response_text = None
-        for model_name in GEMINI_MODELS:
-            try:
-                model = genai.GenerativeModel(model_name)
-                # Configure generation config for JSON response if possible (gemini-1.5+ supports it)
-                generation_config = {"response_mime_type": "application/json"}
-                
-                resp = model.generate_content(
-                    [{"mime_type": mime, "data": b64}, prompt],
-                    generation_config=generation_config
-                )
-                response_text = resp.text
-                break
-            except Exception as e:
-                err_str = str(e).lower()
-                if "quota" in err_str or "429" in err_str:
-                    logger.warning(f"Gemini prediction quota hit. Attempting key rotation.")
-                    if rotate_api_key():
-                        continue # Retry with same model but new key
-                logger.warning(f"Gemini prediction failed on {model_name}: {e}")
-                continue
+        generation_config = {"response_mime_type": "application/json"}
+        response_text = safe_gemini_request(prompt, image_bytes, mime, generation_config)
         
         if not response_text:
-            return jsonify({'error': 'Image analysis service represents unavailable (Quota exceeded). Please try again later.'}), 503
+            return jsonify({'error': 'Image analysis service unavailable (All API keys/models exhausted). Please try again later.'}), 503
 
         # Parse JSON
         import json
