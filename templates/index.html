@@ -7,7 +7,8 @@
     <title>Breast Cancer Detection AI</title>
 
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -20,155 +21,239 @@
 
     <style>
         :root {
-            --primary-color: #4361ee;
-            --secondary-color: #3f37c9;
-            --accent-color: #4895ef;
-            --success-color: #4cc9f0;
-            --danger-color: #f72585;
-            --light-bg: #f8f9fa;
-            --card-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
-            --transition: all 0.3s ease;
+            --primary-hsl: 231, 84%, 60%;
+            --primary-color: hsl(var(--primary-hsl));
+            --secondary-color: hsl(243, 57%, 50%);
+            --accent-color: hsl(213, 85%, 63%);
+            --success-color: hsl(193, 85%, 62%);
+            --danger-color: hsl(333, 94%, 55%);
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.4);
+            --card-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+            --transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
         }
 
         body {
-            background-color: #f0f2f5;
-            font-family: 'Inter', sans-serif;
-            color: #2b2d42;
+            background: linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 50%, #f5f3ff 100%);
+            background-attachment: fixed;
+            font-family: 'Outfit', sans-serif;
+            color: #1e293b;
             line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Decorative Background Elements */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -10%;
+            right: -10%;
+            width: 40%;
+            height: 40%;
+            background: radial-gradient(circle, rgba(67, 97, 238, 0.1) 0%, transparent 70%);
+            z-index: -1;
+            filter: blur(60px);
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -10%;
+            left: -10%;
+            width: 50%;
+            height: 50%;
+            background: radial-gradient(circle, rgba(247, 37, 133, 0.05) 0%, transparent 70%);
+            z-index: -1;
+            filter: blur(80px);
         }
 
         .navbar {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 1rem 0;
+            transition: var(--transition);
         }
 
         .navbar-brand {
-            font-weight: 700;
-            color: var(--primary-color) !important;
-            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(45deg, var(--primary-color), var(--danger-color));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 1.6rem;
+        }
+
+        .navbar-brand i {
+            -webkit-text-fill-color: var(--primary-color);
         }
 
         .main-container {
             max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 15px;
+            margin: 3rem auto;
+            padding: 0 20px;
         }
 
         .card {
-            border: none;
-            border-radius: 16px;
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
             box-shadow: var(--card-shadow);
-            background: white;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             margin-bottom: 2rem;
             transition: var(--transition);
             overflow: hidden;
         }
 
         .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+            transform: translateY(-8px) scale(1.01);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.12);
+            border-color: rgba(67, 97, 238, 0.2);
         }
 
         .card-header {
-            background: white;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-            padding: 1.5rem;
-            font-weight: 600;
+            background: transparent;
+            border-bottom: 1px solid var(--glass-border);
+            padding: 1.8rem 1.5rem 1rem;
+            font-weight: 700;
             color: var(--primary-color);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
         }
 
         .btn-primary {
-            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
             border: none;
-            border-radius: 8px;
-            padding: 12px 24px;
-            font-weight: 600;
+            border-radius: 12px;
+            padding: 14px 28px;
+            font-weight: 700;
             letter-spacing: 0.5px;
             transition: var(--transition);
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
         }
 
         .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.4);
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 12px 25px rgba(67, 97, 238, 0.4);
+            filter: brightness(1.1);
         }
 
         .form-control {
-            border-radius: 8px;
-            border: 1px solid #dee2e6;
-            padding: 12px;
+            border-radius: 12px;
+            border: 1.5px solid rgba(0, 0, 0, 0.08);
+            padding: 14px;
+            background: rgba(255, 255, 255, 0.5);
             transition: var(--transition);
+            font-weight: 500;
         }
 
         .form-control:focus {
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(67, 97, 238, 0.1);
         }
 
         .toggle-btn-group {
-            background: #e9ecef;
-            padding: 5px;
-            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.04);
+            padding: 6px;
+            border-radius: 16px;
             display: inline-flex;
-            margin-bottom: 2rem;
+            margin-bottom: 2.5rem;
+            border: 1px solid rgba(0, 0, 0, 0.02);
         }
 
         .toggle-btn {
             border: none;
             background: transparent;
-            padding: 10px 20px;
-            border-radius: 8px;
-            color: #6c757d;
-            font-weight: 500;
+            padding: 12px 24px;
+            border-radius: 12px;
+            color: #64748b;
+            font-weight: 600;
             transition: var(--transition);
         }
 
         .toggle-btn.active {
             background: white;
             color: var(--primary-color);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
         }
 
         .prediction-result {
             text-align: center;
-            padding: 3rem 2rem;
-            border-radius: 16px;
+            padding: 4rem 2rem;
+            border-radius: 24px;
             color: white;
-            margin-bottom: 2rem;
+            margin-bottom: 2.5rem;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .prediction-result::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 80%);
+            animation: rotate 10s linear infinite;
+        }
+
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         .prediction-result.malignant {
-            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
-            background: linear-gradient(135deg, #ff5f6d 0%, #ffc371 100%);
-            /* Or use the danger var */
             background: linear-gradient(135deg, #ef476f 0%, #ff1053 100%);
+            box-shadow: 0 20px 40px rgba(239, 71, 111, 0.3);
         }
 
         .prediction-result.benign {
-            background: linear-gradient(135deg, #4cc9f0 0%, #4361ee 100%);
+            background: linear-gradient(135deg, #06d6a0 0%, #00b4d8 100%);
+            box-shadow: 0 20px 40px rgba(6, 214, 160, 0.3);
         }
 
         .confidence-badge {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            margin-top: 10px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(5px);
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: 700;
+            margin-top: 20px;
             display: inline-block;
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
 
         .chart-container {
             position: relative;
-            height: 300px;
+            height: 320px;
             width: 100%;
         }
 
         .insight-card {
-            background: #f8f9fa;
-            border-left: 4px solid var(--primary-color);
-            padding: 1rem;
-            margin-bottom: 1rem;
-            border-radius: 0 8px 8px 0;
+            background: rgba(255, 255, 255, 0.5);
+            border-left: 5px solid var(--primary-color);
+            padding: 1.2rem;
+            margin-bottom: 1.2rem;
+            border-radius: 12px;
+            transition: var(--transition);
+        }
+
+        .insight-card:hover {
+            transform: translateX(5px);
+            background: white;
         }
 
         .hidden {
@@ -179,22 +264,112 @@
         @keyframes fadeIn {
             from {
                 opacity: 0;
-                transform: translateY(20px);
+                transform: translateY(30px) scale(0.95);
             }
 
             to {
                 opacity: 1;
-                transform: translateY(0);
+                transform: translateY(0) scale(1);
             }
         }
 
         .animate-up {
-            animation: fadeIn 0.6s ease-out forwards;
+            opacity: 0;
+            animation: fadeIn 0.8s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+        }
+
+        .stagger-1 {
+            animation-delay: 0.1s;
+        }
+
+        .stagger-2 {
+            animation-delay: 0.2s;
+        }
+
+        .stagger-3 {
+            animation-delay: 0.3s;
+        }
+
+        /* Loader Styles */
+        #loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.3s ease;
+        }
+
+        .loader-content {
+            text-align: center;
+        }
+
+        .dna-loader {
+            font-size: 5rem;
+            color: var(--primary-color);
+            margin-bottom: 2rem;
+            animation: pulse-dna 1.8s ease-in-out infinite;
+        }
+
+        @keyframes pulse-dna {
+            0% {
+                transform: scale(1);
+                opacity: 0.8;
+            }
+
+            50% {
+                transform: scale(1.2);
+                opacity: 1;
+                filter: drop-shadow(0 0 15px rgba(67, 97, 238, 0.4));
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 0.8;
+            }
+        }
+
+        .loader-text {
+            font-weight: 600;
+            color: var(--primary-color);
+            letter-spacing: 1px;
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
         }
     </style>
 </head>
 
 <body>
+
+    <!-- Loading Overlay -->
+    <div id="loader-overlay" class="hidden">
+        <div class="loader-content">
+            <div class="dna-loader">
+                <i class="fa-solid fa-dna"></i>
+            </div>
+            <div class="loader-text h4" id="loader-message">AI Analysis in Progress...</div>
+            <p class="text-muted">Extracted features are being evaluated by our neural networks.</p>
+        </div>
+    </div>
 
     <nav class="navbar navbar-expand-lg navbar-light sticky-top">
         <div class="container">
@@ -222,11 +397,12 @@
                 </div>
                 {% endif %}
 
-                <div class="card h-100" id="inputSection">
+                <div class="card h-100 animate-up stagger-1" id="inputSection">
                     <div class="card-body p-4 p-md-5">
                         <div class="text-center mb-4">
-                            <h2 class="fw-bold mb-3">Patient Data Analysis</h2>
-                            <p class="text-muted">Select the dataset type and input the clinical measurements.</p>
+                            <h2 class="fw-bold mb-3" style="letter-spacing: -1px;">AI Diagnostics</h2>
+                            <p class="text-muted opacity-75">Securely process clinical biometric data for rapid
+                                analysis.</p>
 
                             <div class="toggle-btn-group">
                                 <button type="button" class="toggle-btn active" onclick="switchForm('original')">
@@ -256,8 +432,12 @@
                                         style="max-height: 200px;">
                                 </div>
 
-                                <button type="button" class="btn btn-primary px-4 w-100" onclick="predictImage()">
-                                    <i class="fas fa-search me-2"></i> Analyze Image
+                                <button type="button" class="btn btn-primary px-4 w-100 py-3 mt-2"
+                                    onclick="predictImage()">
+                                    <span class="d-flex align-items-center justify-content-center gap-2">
+                                        <i class="fas fa-microscope fs-5"></i>
+                                        <span>Initiate AI Scan</span>
+                                    </span>
                                 </button>
                             </div>
                             <!-- Image Results Container -->
@@ -412,24 +592,27 @@
 
             <!-- Results Section -->
             {% if show_results %}
-            <div class="col-lg-8 animate-up" id="results">
+            <div class="col-lg-8" id="results">
 
                 <!-- Main Result Card -->
-                <div class="prediction-result shadow {{ 'malignant' if 'Malignant' in prediction_text else 'benign' }}">
-                    <h1 class="display-4 fw-bold">
+                <div
+                    class="prediction-result shadow animate-up {{ 'malignant' if 'Malignant' in prediction_text else 'benign' }}">
+                    <div class="mb-3 opacity-75">
                         <i
-                            class="fas {{ 'fa-biohazard' if 'Malignant' in prediction_text else 'fa-shield-heart' }}"></i>
+                            class="fas {{ 'fa-circle-exclamation' if 'Malignant' in prediction_text else 'fa-circle-check' }} fa-3x"></i>
+                    </div>
+                    <h1 class="display-3 fw-extrabold mb-1">
                         {{ prediction_text|replace("Prediction: ", "") }}
                     </h1>
-                    <p class="lead mb-0">Assessed Risk Level: {{ risk_level }}</p>
+                    <p class="lead fw-bold opacity-90 mb-0">Risk Profile: {{ risk_level }}</p>
                     <div class="confidence-badge">
-                        <i class="fas fa-chart-pie me-1"></i> Confidence: {{ confidence }}%
+                        <i class="fas fa-shield-halved me-2"></i>AI Confidence Score: {{ confidence }}%
                     </div>
                 </div>
 
                 <div class="row">
                     <!-- Charts -->
-                    <div class="col-md-6 mb-4">
+                    <div class="col-md-6 mb-4 animate-up stagger-1">
                         <div class="card h-100">
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <span><i class="fas fa-chart-radar me-2"></i>Feature Radar</span>
@@ -442,7 +625,7 @@
                         </div>
                     </div>
 
-                    <div class="col-md-6 mb-4">
+                    <div class="col-md-6 mb-4 animate-up stagger-2">
                         <div class="card h-100">
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <span><i class="fas fa-percentage me-2"></i>Probability Distribution</span>
@@ -455,7 +638,7 @@
                         </div>
                     </div>
 
-                    <div class="col-12 mb-4">
+                    <div class="col-12 mb-4 animate-up stagger-3">
                         <div class="card">
                             <div class="card-header">
                                 <i class="fas fa-chart-bar me-2"></i> Detailed Feature Analysis
@@ -477,8 +660,11 @@
                     <div class="card-body">
                         {% if insights %}
                         {% for insight in insights %}
-                        <div class="insight-card">
-                            <i class="fas fa-info-circle text-primary me-2"></i> {{ insight }}
+                        <div class="insight-card d-flex align-items-center gap-3">
+                            <div class="bg-primary bg-opacity-10 p-2 rounded-circle">
+                                <i class="fas fa-bolt-lightning text-primary"></i>
+                            </div>
+                            <span>{{ insight }}</span>
                         </div>
                         {% endfor %}
                         {% else %}
@@ -500,8 +686,29 @@
 
     </div>
 
+    <!-- Scroll to Top -->
+    <button id="scrollTopBtn" class="btn btn-primary rounded-circle shadow-lg position-fixed bottom-0 end-0 m-4 hidden"
+        style="width: 50px; height: 50px; z-index: 1000;" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
     <!-- Scripts -->
     <script>
+        // Loader Helpers
+        function showLoader(message = "AI Analysis in Progress...") {
+            document.getElementById('loader-message').innerText = message;
+            document.getElementById('loader-overlay').classList.remove('hidden');
+        }
+
+        function hideLoader() {
+            document.getElementById('loader-overlay').classList.add('hidden');
+        }
+
+        // Form Submit Handler
+        document.getElementById('predictionForm').addEventListener('submit', function () {
+            showLoader("Analyzing Patient Data...");
+        });
+
         // Toggle Forms
         function switchForm(type) {
             const originalForm = document.getElementById('originalForm');
@@ -568,6 +775,8 @@
             document.getElementById('imageResult').classList.add('hidden');
             document.getElementById('imageError').classList.add('hidden');
 
+            showLoader("Uploading & Analyzing Image...");
+
             try {
                 const response = await fetch('/predict-image', {
                     method: 'POST',
@@ -602,6 +811,7 @@
             } finally {
                 btn.innerHTML = originalText;
                 btn.disabled = false;
+                hideLoader();
             }
         }
 
@@ -648,14 +858,24 @@
             }
         }
 
-        // Scroll to results if present
-        window.onload = function () {
+        // Initial Load Actions
+        window.addEventListener('load', function () {
             const results = document.getElementById('results');
             if (results) {
                 results.scrollIntoView({ behavior: 'smooth' });
                 initCharts();
             }
-        };
+        });
+
+        // Scroll to top button visibility
+        window.addEventListener('scroll', function () {
+            const btn = document.getElementById('scrollTopBtn');
+            if (window.scrollY > 300) {
+                btn.classList.remove('hidden');
+            } else {
+                btn.classList.add('hidden');
+            }
+        });
 
         // Initialize Charts
         function initCharts() {
@@ -668,12 +888,15 @@
 
         // Color palette
         const colors = {
-            primary: '#4361ee',
-            secondary: '#3f37c9',
-            success: '#4cc9f0',
-            danger: '#f72585',
-            warning: '#f8961e'
+            primary: 'hsl(231, 84%, 60%)',
+            secondary: 'hsl(243, 57%, 50%)',
+            success: 'hsl(193, 85%, 62%)',
+            danger: 'hsl(333, 94%, 55%)',
+            warning: 'hsl(45, 100%, 50%)'
         };
+
+        Chart.defaults.font.family = "'Outfit', sans-serif";
+        Chart.defaults.color = "#64748b";
 
         // Radar Chart
         const ctxRadar = document.getElementById('radarChart');
@@ -686,22 +909,27 @@
                         label: 'Patient Metrics',
                         data: featureValues,
                         fill: true,
-                        backgroundColor: 'rgba(67, 97, 238, 0.2)',
+                        backgroundColor: 'rgba(67, 97, 238, 0.15)',
                         borderColor: colors.primary,
                         pointBackgroundColor: colors.secondary,
                         pointBorderColor: '#fff',
                         pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: colors.secondary
+                        pointHoverBorderColor: colors.secondary,
+                        borderWidth: 3
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
                     scales: {
                         r: {
-                            angleLines: { color: 'rgba(0,0,0,0.1)' },
+                            beginAtZero: true,
+                            angleLines: { color: 'rgba(0,0,0,0.05)' },
                             grid: { color: 'rgba(0,0,0,0.05)' },
-                            suggestedMin: 0
+                            pointLabels: { font: { size: 10, weight: '600' } }
                         }
                     }
                 }
@@ -718,14 +946,17 @@
                     datasets: [{
                         data: predictionProbs || [0.5, 0.5], // Fallback
                         backgroundColor: [colors.success, colors.danger],
-                        hoverOffset: 4
+                        hoverOffset: 15,
+                        borderWidth: 0,
+                        spacing: 5
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    cutout: '75%',
                     plugins: {
-                        legend: { position: 'bottom' }
+                        legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } }
                     }
                 }
             });
@@ -744,8 +975,9 @@
                     datasets: [{
                         label: 'Measured Value',
                         data: featureValues,
-                        backgroundColor: featureValues.map(v => v > meanVal ? colors.danger : colors.success),
-                        borderRadius: 5
+                        backgroundColor: featureValues.map(v => v > meanVal ? 'rgba(239, 71, 111, 0.8)' : 'rgba(6, 214, 160, 0.8)'),
+                        borderRadius: 12,
+                        hoverBackgroundColor: featureValues.map(v => v > meanVal ? colors.danger : colors.success)
                     }]
                 },
                 options: {
@@ -755,7 +987,13 @@
                         legend: { display: false }
                     },
                     scales: {
-                        y: { beginAtZero: true }
+                        y: {
+                            beginAtZero: true,
+                            grid: { display: false }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
                     }
                 }
             });
